@@ -12,17 +12,20 @@ from app.schemas.continuity import (
     InheritanceOptionItem,
     PurchasedEquipmentItem,
 )
+from app.schemas.deity import DeitySummaryItem
 from app.schemas.faction import FactionStateItem
 from app.schemas.relation import RelationEdgeSummary, RelationStoryQuestItem
 from app.services.campaign_phase_service import transition_campaign_phase
 from app.services.continuity_service import (
-    build_chronicle_summary,
     build_authority_candidate_summary,
     build_blessing_offer_summary,
+    build_chronicle_summary,
+    build_deity_summary,
     build_faction_summary,
     build_inheritance_options,
     build_materials_legacy_summary,
     build_purchased_equipment_legacy_summary,
+    build_religious_outlook,
     build_relation_legacy_summary,
     build_relation_story_quest_summary,
     build_security_outlook,
@@ -64,7 +67,12 @@ def get_continuity_overview(world_id: int):
                 FactionStateItem(**item)
                 for item in build_faction_summary(db, world=world)
             ],
+            deities=[
+                DeitySummaryItem(**item)
+                for item in build_deity_summary(db, world=world)
+            ],
             chronicle_summary=build_chronicle_summary(db, world=world),
+            religious_outlook=build_religious_outlook(db, world=world),
             security_score=security_score,
             security_band=security_band,
             security_outlook=security_outlook,

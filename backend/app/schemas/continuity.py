@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from app.schemas.faction import FactionStateItem
+from app.schemas.deity import DeitySummaryItem
 from app.schemas.relation import RelationEdgeSummary, RelationStoryQuestItem
 
 
@@ -64,7 +65,9 @@ class ContinuityOverviewResponse(BaseModel):
     top_relation_summaries: list[RelationEdgeSummary]
     relation_story_quests: list[RelationStoryQuestItem]
     faction_states: list[FactionStateItem]
+    deities: list[DeitySummaryItem]
     chronicle_summary: str
+    religious_outlook: str
     security_score: int
     security_band: str
     security_outlook: str

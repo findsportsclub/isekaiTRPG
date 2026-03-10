@@ -7,6 +7,7 @@ from app.models.quest import Quest
 from app.models.world import World
 from app.services.expedition_service import get_expedition_context, serialize_gathered_materials
 from app.services.faction_service import list_world_factions
+from app.services.deity_service import list_world_deities
 from app.services.generation_content_service import build_authority_candidates, build_blessing_offers
 from app.services.hub_service import build_purchased_equipment_summary
 from app.services.relation_graph_service import list_top_relation_summaries
@@ -134,13 +135,36 @@ def build_faction_summary(db: Session, *, world: World) -> list[dict[str, object
     return list_world_factions(db, world=world)
 
 
+def build_deity_summary(db: Session, *, world: World) -> list[dict[str, object]]:
+    return list_world_deities(db, world=world, count=3)
+
+
 def build_purchased_equipment_legacy_summary(db: Session, *, world: World) -> list[dict[str, object]]:
     return build_purchased_equipment_summary(db, world_id=world.world_id)
 
 
 def build_blessing_offer_summary(db: Session, *, world: World) -> list[dict[str, object]]:
-    return build_blessing_offers(world_seed=int(world.seed), count=3)
+    blessings = build_blessing_offers(world_seed=int(world.seed), count=3)
+    deities = list_world_deities(db, world=world, count=max(3, len(blessings)))
+    items: list[dict[str, object]] = []
+    for index, blessing in enumerate(blessings):
+        deity = dict(deities[index % len(deities)]) if deities else {}
+        item = dict(blessing)
+        if deity:
+            item["source_hint"] = str(deity.get("name", item["source_hint"]))
+            item["summary"] = f"{deity.get('name', '神格')}の系譜に連なる恩寵候補。{item['summary']}"
+        items.append(item)
+    return items
 
 
 def build_authority_candidate_summary(db: Session, *, world: World) -> list[dict[str, object]]:
     return build_authority_candidates(world_seed=int(world.seed), count=3)
+
+
+def build_religious_outlook(db: Session, *, world: World) -> str:
+    deities = list_world_deities(db, world=world, count=3)
+    if len(deities) >= 2:
+        return f"{deities[0]['name']}と{deities[1]['name']}の教会が街で影響力を競い、説教や巡礼路を巡る静かな緊張が生まれている。"
+    if deities:
+        return f"{deities[0]['name']}の教えが徐々に土地へ浸透し、信仰圏が形を取り始めている。"
+    return "まだ神々の存在感は薄く、宗教圏の動きは表立っていない。"

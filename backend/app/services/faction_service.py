@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.world import World
 from app.models.world_faction_state import WorldFactionState
 from app.services.campaign_phase_service import get_or_create_campaign_state
+from app.services.deity_service import list_world_deities
 from app.services.world_progress_service import get_or_create_world_state, get_security_band
 
 FACTION_CATEGORY_TEMPLATES = [
@@ -59,6 +60,8 @@ def _build_faction_incident_hint(db: Session, *, faction: WorldFactionState, wor
     campaign_state = get_or_create_campaign_state(db, world.world_id)
     security_band = get_security_band(world_state.security_score)
     day_no = int(campaign_state.day_no)
+    deities = list_world_deities(db, world=world, count=2)
+    primary_deity_name = str(deities[0]["name"]) if deities else "守護神"
 
     if security_band in {"unstable", "lawless"} and faction.category == "militia":
         return f"{faction.display_name}は盗賊対策を巡って過重負担を抱え、離脱者が出かねない。"
@@ -73,7 +76,7 @@ def _build_faction_incident_hint(db: Session, *, faction: WorldFactionState, wor
     if faction.category == "guild" and day_no % 3 == 0:
         return f"{faction.display_name}は新しい依頼の配分を巡り、商会や守備隊と神経質な駆け引きを続けている。"
     if faction.category == "church":
-        return f"{faction.display_name}は街角で説教を重ね、信徒を巡って他宗派と静かな競合を起こしている。"
+        return f"{faction.display_name}は{primary_deity_name}の教えを街角で説き、他宗派との静かな競合を起こしている。"
     return f"{faction.display_name}は今のところ表立った破綻はないが、水面下では勢力争いが続いている。"
 
 

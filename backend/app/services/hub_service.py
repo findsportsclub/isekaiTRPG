@@ -16,6 +16,7 @@ from app.services.campaign_phase_service import (
 )
 from app.services.expedition_service import get_expedition_context, serialize_gathered_materials
 from app.services.faction_service import list_faction_incident_hints
+from app.services.deity_service import list_religious_rumors
 from app.services.generation_content_service import build_market_offers, get_market_offer_by_key, register_market_equipment
 from app.services.battle_registry import get_equipment
 from app.services.tendency_service import apply_tendency_delta
@@ -114,7 +115,16 @@ def list_recent_rumors(db: Session, *, world_id: int, limit: int = 3) -> list[st
     if rumors:
         if world:
             rumors.extend(list_faction_incident_hints(db, world=world, limit=2))
+            rumors.extend(list_religious_rumors(db, world=world, limit=1))
         return rumors[: max(limit, 3)]
+    if world:
+        return (
+            [
+                "北で霧が濃くなっている",
+                "坑道で失踪者が出た",
+            ]
+            + list_religious_rumors(db, world=world, limit=1)
+        )[: max(limit, 3)]
     return [
         "北で霧が濃くなっている",
         "坑道で失踪者が出た",
